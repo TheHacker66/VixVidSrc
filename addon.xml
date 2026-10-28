@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addon id="plugin.video.vidsrc.prototype" name="VidSrc + VixSrc" version="0.4.0" provider-name="Prototype">
+  <requires><import addon="xbmc.python" version="3.0.0"/></requires>
+  <extension point="xbmc.python.pluginsource" library="default.py"><provides>video</provides></extension>
+  <extension point="xbmc.addon.metadata"><summary lang="it_IT">VidSrc e VixSrc con catalogo TMDb, ricerca e preferiti</summary><description lang="it_IT">Catalogo visuale film e serie, sottotitoli, preferiti e ricerche locali. Fonti VidSrc e VixSrc selezionabili. Richiede credenziale TMDb personale; Node.js è richiesto solo per VidSrc.</description><platform>all</platform><license>MIT</license></extension>
+</addon>

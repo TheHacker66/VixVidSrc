@@ -1,0 +1,10 @@
+<settings>
+  <setting id="source_mode" type="enum" label="Fonte video" values="VidSrc|VixSrc|Scegli ogni volta" default="2"/>
+  <setting id="tmdb_token" type="text" label="TMDb API Read Access Token (consigliato)" option="hidden" default=""/>
+  <setting id="tmdb_key" type="text" label="TMDb API Key v3 (alternativa al token)" option="hidden" default=""/>
+  <setting id="tmdb_language" type="text" label="Lingua catalogo TMDb" default="it-IT"/>
+  <setting id="subtitles_mode" type="enum" label="Sottotitoli esterni" values="Automatici|Scegli prima di riprodurre|Disattivati" default="0"/>
+  <setting id="subtitles_languages" type="text" label="Lingue sottotitoli (fino a 3, es. it,en,fr)" default="it,en"/>
+  <setting id="node_path" type="text" label="Eseguibile Node.js (percorso completo oppure node)" default="node"/>
+  <setting id="diagnostic" type="bool" label="Salva risposta HTML su errore CONFIG (per debug)" default="false"/>
+</settings>
