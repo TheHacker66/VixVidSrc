@@ -1,4 +1,36 @@
-# VidSrc + VixSrc — 0.4.0
+# VidSrc + VixSrc — 0.4.1
+
+## Correzione sottotitoli VixSrc
+
+Le tracce WebVTT indicate nelle playlist HLS vengono ora recuperate e collegate
+esplicitamente a Kodi come file .vtt. Non vengono convertite in SRT.
+La versione precedente saltava questo caricamento quando rilevava tracce HLS,
+affidandosi alla loro esposizione automatica nel lettore.
+
+Installa lo ZIP sopra la 0.4.0. In Impostazioni seleziona Sottotitoli esterni →
+Automatici oppure Scegli prima di riprodurre. Poi riavvia il titolo e apri il
+menu Sottotitoli/CC di Kodi per attivare o selezionare la traccia.
+La selezione Disattivati evita anche il nuovo download esplicito.
+
+Automatici recupera fino a una traccia completa e una forced per ciascuna lingua
+preferita, se disponibili. Le tracce complete hanno precedenza; una forced
+contiene solo alcuni dialoghi o scritte e non equivale a una traccia completa.
+Le varianti complete CC sono usate se manca una variante completa standard.
+I file forced hanno il suffisso .forced.vtt per distinguerli nel lettore.
+
+Quando una traccia contiene un solo segmento WebVTT, il contenuto viene
+conservato. Le tracce suddivise vengono unite in WebVTT preservando formattazione,
+impostazioni delle battute e timestamp, con gestione delle mappe MPEGTS e delle
+discontinuità. Il download è limitato a 64 segmenti e 16 MiB per traccia, con
+un budget di 30 secondi controllato tra le richieste; ciascuna richiesta ha
+timeout di 8 secondi. Tracce cifrate o byte-range non sono supportate da questo
+caricamento esplicito. Gli errori non impediscono l’avvio del video.
+
+Validazione: 37 test locali, inclusi rilevamento delle tracce nel resolver,
+salvataggio .vtt, lingue, complete/forced, cache, segmenti multipli, formattazione,
+mappe timestamp e limiti di download. Prova live riuscita: scaricate e salvate
+due tracce WebVTT (italiano forced e inglese completo) da un master VixSrc reale.
+La visualizzazione sul Vero resta da provare.
 
 ## Nuova fonte VixSrc
 
@@ -24,10 +56,11 @@ Il resolver richiede lang=it e conserva tutte le tracce della playlist.
 Nelle prove live il master indica italiano come audio predefinito, ma la
 selezione finale dipende dalle impostazioni di Kodi e dalla disponibilità del
 titolo. Durante la riproduzione puoi scegliere Italiano dal menu Audio.
-I sottotitoli HLS integrati sono esposti al menu Sottotitoli/CC di Kodi.
-Quando sono presenti, la modalità sottotitoli Automatici non effettua ricerche
-esterne aggiuntive; Scegli prima di riprodurre continua a permettere la ricerca
-esterna. Se mancano tracce HLS, rimane disponibile il recupero esterno precedente.
+I sottotitoli HLS vengono anche scaricati come WebVTT nelle lingue configurate
+e passati esplicitamente al lettore. Quando il download riesce, Automatici non
+effettua ricerche esterne aggiuntive per quella lingua. Scegli prima di
+riprodurre continua a permettere la ricerca esterna. Se mancano tracce HLS o
+il loro download fallisce, rimane disponibile il recupero esterno precedente.
 
 La presenza nel catalogo TMDb non garantisce che il titolo sia disponibile su
 entrambe le fonti, né garantisce una specifica lingua. Per problemi su una fonte
@@ -69,9 +102,10 @@ Non richiede credenziali OpenSubtitles aggiuntive. Disponibilità e accesso
 all’endpoint dipendono dal servizio e dalla rete.
 
 Nelle impostazioni:
-- Automatici: prova italiano e inglese, una traccia per lingua, preferendo le
+- Automatici: prova italiano e inglese, preferendo le
   tracce incluse nel video e poi le versioni OpenSubtitles con maggiore affinità
   al nome del file video; se un download fallisce prova altre versioni.
+  Per VixSrc recupera anche le varianti complete e forced disponibili via HLS.
 - Scegli prima di riprodurre: mostra le tracce del servizio e i risultati nelle
   lingue configurate, con il nome della versione. Annulla avvia senza tracce
   esterne. Puoi scegliere una versione diversa se la sincronizzazione non va.
@@ -177,7 +211,7 @@ Ogni nuova riproduzione elimina la risposta diagnostica precedente.
 
 ## Validazione
 
-30 test locali: percorso del resolver, interfaccia WASM con modulo sintetico,
+37 test locali: percorso del resolver, interfaccia WASM con modulo sintetico,
 landing e rinnovo token, credenziali TMDb, Unicode nelle ricerche, persistenza,
 deduplicazione e limite cronologia, preferiti, paginazione e filtraggio dei
 risultati, navigazione serie → episodio e passaggio dell’ID IMDb al resolver.

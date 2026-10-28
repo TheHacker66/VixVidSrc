@@ -10,6 +10,7 @@ import json
 import re
 import urllib.parse
 from resolver import Resolver, ResolverError, UA, add_params, origin
+from hls_subtitles import tracks as subtitle_tracks
 
 VIX = 'https://vixsrc.to'
 
@@ -175,7 +176,8 @@ class VixResolver(Resolver):
                 'data': {'title': title, 'imdb_id': imdb, 'file_name': filename},
                 'config': {'imdb': imdb, 'season': season if media_type == 'tv' else None,
                            'episode': episode if media_type == 'tv' else None},
-                'default_subs': [], 'native_subtitles': manifest_has_subtitles(manifest)}
+                'default_subs': subtitle_tracks(manifest, url), 'native_subtitles': manifest_has_subtitles(manifest)}
             headers = {'User-Agent': UA, 'Referer': VIX + '/', 'Origin': VIX}
+            self.subtitle_context['headers'] = headers
             return url, headers, title
         raise ResolverError('VixSrc: nessuna playlist HLS disponibile; prova VidSrc')

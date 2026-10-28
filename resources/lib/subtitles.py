@@ -126,6 +126,9 @@ class Subtitles:
         request_headers = {}
         if source.scheme == 'https' and source.netloc:
             request_headers['Referer'] = source.scheme + '://' + source.netloc + '/'
+        for key in ('User-Agent', 'Referer', 'Origin'):
+            if self.context.get('headers', {}).get(key):
+                request_headers[key] = self.context['headers'][key]
         request_headers.update(headers or {})
         return self.network(url, request_headers)
 
@@ -140,9 +143,11 @@ class Subtitles:
                 continue
             code = language(sub.get('code') or sub.get('lang'))
             url = urllib.parse.urljoin(self.context.get('player', ''), sub['url'])
-            result.append({'url': url, 'lang': code, 'label': sub.get('label') or sub.get('lang') or code, 'encoding': 'utf-8'})
+            result.append({'url': url, 'lang': code, 'label': sub.get('label') or sub.get('lang') or code, 'encoding': 'utf-8',
+                           'hls': bool(sub.get('hls')), 'forced': bool(sub.get('forced')), 'cc': bool(sub.get('cc'))})
         # Group preferred languages first; keep other default tracks available.
-        return sorted(result, key=lambda s: self.preferred.index(s['lang']) if s['lang'] in self.preferred else 10)
+        return sorted(result, key=lambda s: (self.preferred.index(s['lang']) if s['lang'] in self.preferred else 10,
+                                              s.get('forced', False), s.get('cc', False)))
 
     def search(self, lang):
         data, config = self.context.get('data') or {}, self.context.get('config') or {}
@@ -189,12 +194,21 @@ class Subtitles:
     def download(self, sub):
         os.makedirs(self.directory, exist_ok=True)
         key = hashlib.sha256((self.context.get('media_key', '') + sub['url']).encode()).hexdigest()[:24]
-        prefix = os.path.join(self.directory, key + '.' + sub['lang'])
+        suffix = '.forced' if sub.get('forced') else ''
+        prefix = os.path.join(self.directory, key + '.' + sub['lang'] + suffix)
         for ext in ('.srt', '.vtt', '.ass'):
             path = prefix + ext
             if os.path.isfile(path) and time.time() - os.path.getmtime(path) < 7 * 86400:
                 return path
         url = sub['url']
+        if sub.get('hls'):
+            from hls_subtitles import download as download_hls
+            text, ext = download_hls(url, self.get), '.vtt'
+            path = prefix + ext
+            with open(path + '.tmp', 'w', encoding='utf-8', newline='\n') as stream:
+                stream.write(text)
+            os.replace(path + '.tmp', path)
+            return path
         # Use VidSrc's existing converted copy when available; otherwise decode
         # the client-downloaded original locally, without POSTing to the server.
         if sub.get('opensubtitles'):
@@ -225,12 +239,16 @@ class Subtitles:
         result = []
         for lang in self.preferred:
             defaults = [s for s in self.tracks() if s['lang'] == lang]
-            found = False
-            for sub in defaults[:3]:
+            found = set()
+            for sub in defaults[:6]:
+                kind = bool(sub.get('forced')) if sub.get('hls') else False
+                if kind in found:
+                    continue
                 try:
                     result.append(self.download(sub))
-                    found = True
-                    break
+                    found.add(kind)
+                    if not sub.get('hls'):
+                        break
                 except (OSError, ValueError, EOFError, zipfile.BadZipFile):
                     self.failures += 1
             if found:

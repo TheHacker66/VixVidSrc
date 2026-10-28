@@ -27,9 +27,6 @@ def prepare_subtitles(resolver, progress):
     mode = ADDON.getSetting('subtitles_mode') or '0'
     if mode == '2':
         return []
-    if mode == '0' and resolver.subtitle_context.get('native_subtitles'):
-        # HLS subtitle playlists are handled by Kodi, not as standalone VTT files.
-        return []
     from subtitles import Subtitles
     profile = xbmcvfs.translatePath(ADDON.getAddonInfo('profile'))
     subs = Subtitles(resolver.subtitle_context, os.path.join(profile, 'subtitles'),
